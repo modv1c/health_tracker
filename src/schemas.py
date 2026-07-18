@@ -79,3 +79,7 @@ class SleepRead(BaseModel):
     nap_hours_before_bed: int
     hours_since_last_meal: int
     date: datetime
+    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
