@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from src.models import Nutrition_Goal
+from typing import Optional
 
 class UserCreate(BaseModel):
     username: str
@@ -37,6 +38,14 @@ class WorkoutsRead(BaseModel):
     workout_time: int
     time_between_sets: int
     date: datetime
+    
+class WorkoutsUpdate(BaseModel):
+    workout_name: Optional[str] = None
+    reps: Optional[int] = None
+    sets: Optional[int] = None
+    to_failure: Optional[bool] = None
+    workout_time: Optional[int] = None
+    time_between_sets: Optional[int] = None
     
 class NutritionCreate(BaseModel):
     meal_name: str

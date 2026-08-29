@@ -17,8 +17,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    weight: Mapped[int | None] = mapped_column()
-    height: Mapped[int | None] = mapped_column()
+    weight: Mapped[int | None] = mapped_column(default=None)
+    height: Mapped[int | None] = mapped_column(default=None)
     
     workouts: Mapped[list["Workouts"]] = relationship(back_populates="user")
     nutrition: Mapped[list["Nutrition"]] = relationship(back_populates="user")
