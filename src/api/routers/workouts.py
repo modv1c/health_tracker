@@ -28,7 +28,7 @@ async def create_workout(
 ):
     new_workout = Workouts(
         **workout_data.model_dump(),
-        user_id=current_user.id,
+        user_id = current_user.id,
     )
 
     db.add(new_workout)

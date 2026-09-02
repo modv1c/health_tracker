@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, func, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import Base
 import enum
@@ -60,8 +60,8 @@ class Sleep(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     hours_of_sleep: Mapped[int] = mapped_column()
-    go_to_bed_at: Mapped[datetime] = mapped_column()
-    wake_up_at: Mapped[datetime] = mapped_column()
+    go_to_bed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    wake_up_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     sleep_at_day: Mapped[bool] = mapped_column()
     nap_hours_before_bed: Mapped[int] = mapped_column()
     hours_since_last_meal: Mapped[int] = mapped_column()

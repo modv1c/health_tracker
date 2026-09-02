@@ -68,6 +68,14 @@ class NutritionRead(BaseModel):
     nutrition_goal: Nutrition_Goal
     date: datetime
     
+class NutritionUpdate(BaseModel):
+    meal_name: Optional[str] = None
+    calories: Optional[int] = None
+    protein: Optional[int] = None
+    fats: Optional[int] = None
+    carbs: Optional[int] = None
+    nutrition_goal: Optional[Nutrition_Goal] = None
+    
 class SleepCreate(BaseModel):
     hours_of_sleep: int
     go_to_bed_at: datetime
@@ -88,6 +96,14 @@ class SleepRead(BaseModel):
     nap_hours_before_bed: int
     hours_since_last_meal: int
     date: datetime
+    
+class SleepUpdate(BaseModel):
+    hours_of_sleep: Optional[int] = None
+    go_to_bed_at: Optional[datetime] = None
+    wake_up_at: Optional[datetime] = None
+    sleep_at_day: Optional[bool] = None
+    nap_hours_before_bed: Optional[int] = None
+    hours_since_last_meal: Optional[int] = None
     
 class Token(BaseModel):
     access_token: str
