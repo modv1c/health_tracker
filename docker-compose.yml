@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .                          # ЖЁСТКО: "собери образ из Dockerfile рядом"
+    ports:
+      - "8000:8000"                   # ТВОЁ: слева — порт на Windows, справа — порт из CMD в Dockerfile (у тебя 8000)
+    env_file:
+      - .env                          # ЖЁСТКО: подтягивает SECRET_KEY, ALGORITHM и т.д. из твоего существующего .env
+    environment:                      # ТВОЁ: эти строки ПЕРЕЗАПИШУТ соответствующие значения из .env
+      DB_HOST: db
+      REDIS_HOST: redis
+    depends_on:
+      db:
+        condition: service_healthy    # ЖЁСТКО: жди, пока Postgres реально готов
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app                        # ЖЁСТКО (для разработки): текущая папка → внутрь контейнера
+
+  db:
+    image: postgres:16                # ТВОЁ: версия Postgres, можно любую 15/16
+    environment:
+      POSTGRES_USER: postgres         # ДОЛЖНО совпадать с DB_USER в .env
+      POSTGRES_PASSWORD: 2007rvkK     # ДОЛЖНО совпадать с DB_PASS в .env
+      POSTGRES_DB: health_tracker     # ДОЛЖНО совпадать с DB_NAME в .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # ЖЁСТКО: путь внутри — стандартный для образа postgres, не менять
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d health_tracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7                    # ТВОЁ: версия, можно любую 7.x
+
+volumes:
+  pgdata:                             # ЖЁСТКО: просто объявление, что pgdata — named volume
