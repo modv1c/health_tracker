@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
-from datetime import datetime
-from src.models import Nutrition_Goal
+from datetime import datetime, date
+from src.models import Gender, ActivityLevel, Nutrition_Goal
 from typing import Optional
 
 class UserCreate(BaseModel):
@@ -16,7 +16,19 @@ class UserRead(BaseModel):
     email: str
     weight: int | None = None
     height: int | None = None
+    gender: Gender | None = None
+    birth_date: date | None = None
+    activity_level: ActivityLevel | None = None
+    current_goal: Nutrition_Goal | None = None
     created_at: datetime
+    
+class UserUpdate(BaseModel):
+    weight: Optional[int] = None
+    height: Optional[int] = None
+    gender: Optional[Gender] = None
+    birth_date: Optional[date] = None
+    activity_level: Optional[ActivityLevel] = None
+    current_goal: Optional[Nutrition_Goal] = None
     
 class WorkoutsCreate(BaseModel):
     workout_name: str
@@ -53,7 +65,6 @@ class NutritionCreate(BaseModel):
     protein: int
     fats: int
     carbs: int
-    nutrition_goal: Nutrition_Goal
     
 class NutritionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -65,7 +76,6 @@ class NutritionRead(BaseModel):
     protein: int
     fats: int
     carbs: int
-    nutrition_goal: Nutrition_Goal
     date: datetime
     
 class NutritionUpdate(BaseModel):
@@ -74,7 +84,6 @@ class NutritionUpdate(BaseModel):
     protein: Optional[int] = None
     fats: Optional[int] = None
     carbs: Optional[int] = None
-    nutrition_goal: Optional[Nutrition_Goal] = None
     
 class SleepCreate(BaseModel):
     hours_of_sleep: int

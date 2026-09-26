@@ -1,8 +1,19 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import ForeignKey, func, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import Base
 import enum
+
+class Gender(enum.Enum):
+    male = "male"
+    female = "female"
+    
+class ActivityLevel(enum.Enum):
+    sedentary = "sedentary"           # сидячий образ жизни, почти нет активности
+    light = "light"                   # лёгкая активность, 1-3 тренировки в неделю
+    moderate = "moderate"             # умеренная, 3-5 тренировок в неделю
+    active = "active"                 # высокая, 6-7 тренировок в неделю
+    very_active = "very_active"       # очень высокая, физическая работа + тренировки
 
 class Nutrition_Goal(enum.Enum):
     bulking = "bulking"
@@ -20,6 +31,10 @@ class User(Base):
     weight: Mapped[int | None] = mapped_column(default=None)
     height: Mapped[int | None] = mapped_column(default=None)
     
+    gender: Mapped[Gender | None] = mapped_column(default=None)
+    birth_date: Mapped[date | None] = mapped_column(default=None)
+    activity_level: Mapped[ActivityLevel | None] = mapped_column(default=None)
+    current_goal: Mapped[Nutrition_Goal | None] = mapped_column(default=None)
     workouts: Mapped[list["Workouts"]] = relationship(back_populates="user")
     nutrition: Mapped[list["Nutrition"]] = relationship(back_populates="user")
     sleep: Mapped[list["Sleep"]] = relationship(back_populates="user")
@@ -49,7 +64,6 @@ class Nutrition(Base):
     protein: Mapped[int] = mapped_column()
     fats: Mapped[int] = mapped_column()
     carbs: Mapped[int] = mapped_column()
-    nutrition_goal: Mapped[Nutrition_Goal] = mapped_column()
     date: Mapped[datetime] = mapped_column(server_default=func.now())
     
     user: Mapped["User"] = relationship(back_populates="nutrition")
