@@ -48,14 +48,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
     payload = decode_access_token(token)
 
+    credentials_error = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Невалидный или истёкший токен",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
     if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Невалидный или истёкший токен",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise credentials_error
 
     user_id = payload.get("sub")
+    if not isinstance(user_id, str) or not user_id.isdigit():
+        raise credentials_error
 
     query = select(User).where(User.id == int(user_id))
     result = await db.execute(query)

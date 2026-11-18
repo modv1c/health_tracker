@@ -6,6 +6,7 @@ from src.database import get_db
 from src.models import User, Nutrition
 from src.schemas import NutritionCreate, NutritionRead, NutritionUpdate
 from src.security import get_current_user
+from src.redis_client import invalidate_user_stats
 
 router = APIRouter(prefix="/nutrition", tags=["nutrition"])
 
@@ -32,6 +33,7 @@ async def create_nutrition(
     
     db.add(new_nutrition)
     await db.commit()
+    await invalidate_user_stats(current_user.id)
     await db.refresh(new_nutrition)
     
     return new_nutrition
@@ -41,7 +43,7 @@ async def get_all_nutrition(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    query = select(Nutrition).where(Nutrition.user_id == current_user.id)
+    query = select(Nutrition).where(Nutrition.user_id == current_user.id).order_by(Nutrition.date.desc())
     result = await db.execute(query)
     nutrition = result.scalars().all()
     
@@ -64,6 +66,7 @@ async def delete_nutrition(
     nutrition = await get_nutrition_or_404(nutrition_id, current_user, db)
     await db.delete(nutrition)
     await db.commit()
+    await invalidate_user_stats(current_user.id)
     
 @router.patch("/{nutrition_id}", response_model=NutritionRead)
 async def update_nutrition(
@@ -77,8 +80,9 @@ async def update_nutrition(
     update_data = nutrition_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(nutrition, key, value)
-        
+
     await db.commit()
+    await invalidate_user_stats(current_user.id)
     await db.refresh(nutrition)
     
     return nutrition

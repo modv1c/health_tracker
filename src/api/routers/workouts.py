@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 
 from src.database import get_db
 from src.models import User, Workouts
-from src.schemas import WorkoutsCreate, WorkoutsRead, WorkoutsUpdate
+from src.schemas import ExerciseProgress, WorkoutsCreate, WorkoutsRead, WorkoutsUpdate
 from src.security import get_current_user
+from src.redis_client import invalidate_user_stats
 
 router = APIRouter(prefix="/workouts", tags=["workouts"])
 
@@ -33,6 +35,7 @@ async def create_workout(
 
     db.add(new_workout)
     await db.commit()
+    await invalidate_user_stats(current_user.id)
     await db.refresh(new_workout)
 
     return new_workout
@@ -47,6 +50,32 @@ async def get_workouts(
     result = await db.execute(query)
     workouts = result.scalars().all()
     return workouts
+
+
+@router.get("/progress", response_model=list[ExerciseProgress])
+async def get_progress(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    exercise_key = func.lower(func.trim(Workouts.workout_name))
+    first_weight = func.array_agg(aggregate_order_by(Workouts.weight_kg, Workouts.date.asc()))[1]
+    last_weight = func.array_agg(aggregate_order_by(Workouts.weight_kg, Workouts.date.desc()))[1]
+
+    query = (
+        select(
+            func.min(Workouts.workout_name).label("exercise"),
+            func.count().label("records"),
+            func.max(Workouts.weight_kg).label("best_weight"),
+            first_weight.label("first_weight"),
+            last_weight.label("last_weight"),
+            func.max(Workouts.date).label("last_date"),
+        )
+        .where(Workouts.user_id == current_user.id, Workouts.weight_kg.is_not(None))
+        .group_by(exercise_key)
+        .order_by(func.max(Workouts.date).desc())
+    )
+    result = await db.execute(query)
+    return [row._asdict() for row in result]
 
 
 @router.get("/{workout_id}", response_model=WorkoutsRead)
@@ -67,6 +96,7 @@ async def delete_workout(
     workout = await get_workout_or_404(workout_id, current_user, db)
     await db.delete(workout)
     await db.commit()
+    await invalidate_user_stats(current_user.id)
     
 @router.patch("/{workout_id}", response_model=WorkoutsRead)
 async def update_workout(
@@ -82,6 +112,7 @@ async def update_workout(
         setattr(workout, key, value)
 
     await db.commit()
+    await invalidate_user_stats(current_user.id)
     await db.refresh(workout)
 
     return workout
