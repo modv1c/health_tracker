@@ -57,7 +57,7 @@ async def get_progress(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    exercise_key = func.lower(func.trim(Workouts.workout_name))
+    exercise_key = func.replace(func.lower(func.trim(Workouts.workout_name)), "ё", "е")
     first_weight = func.array_agg(aggregate_order_by(Workouts.weight_kg, Workouts.date.asc()))[1]
     last_weight = func.array_agg(aggregate_order_by(Workouts.weight_kg, Workouts.date.desc()))[1]
 

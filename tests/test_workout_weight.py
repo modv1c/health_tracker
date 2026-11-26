@@ -55,6 +55,17 @@ async def test_progress_groups_by_exercise(client, auth_headers):
 
 
 @pytest.mark.asyncio
+async def test_progress_treats_yo_and_ye_as_same_letter(client, auth_headers):
+    await client.post("/workouts/", json={**WORKOUT, "workout_name": "Жим лёжа", "weight_kg": 60}, headers=auth_headers)
+    await client.post("/workouts/", json={**WORKOUT, "workout_name": "жим лежа", "weight_kg": 65}, headers=auth_headers)
+
+    progress = (await client.get("/workouts/progress", headers=auth_headers)).json()
+    assert len(progress) == 1
+    assert progress[0]["records"] == 2
+    assert progress[0]["last_weight"] == 65
+
+
+@pytest.mark.asyncio
 async def test_high_reps_advice_on_bulking(client, auth_headers):
     await client.patch("/auth/me", json=PROFILE, headers=auth_headers)  # цель: набор массы
     await client.post("/workouts/", json={**WORKOUT, "workout_name": "Сгибания", "reps": 20, "weight_kg": 8}, headers=auth_headers)

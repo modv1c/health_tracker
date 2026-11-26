@@ -27,18 +27,19 @@ async def get_weekly_summary(
     if cached:
         return cached
 
-    week_ago = func.now() - timedelta(days=7)
+    today = await db.scalar(select(func.current_date()))
+    week_start = today - timedelta(days=6)
 
     workouts_count = await db.scalar(
         select(func.count(Workouts.id)).where(
             Workouts.user_id == current_user.id,
-            Workouts.date >= week_ago,
+            Workouts.date >= week_start,
         )
     )
 
     calories_per_day = (
         select(func.sum(Nutrition.calories).label("total"))
-        .where(Nutrition.user_id == current_user.id, Nutrition.date >= week_ago)
+        .where(Nutrition.user_id == current_user.id, Nutrition.date >= week_start)
         .group_by(cast(Nutrition.date, Date))
         .subquery()
     )
@@ -48,7 +49,7 @@ async def get_weekly_summary(
         select(func.avg(Sleep.hours_of_sleep)).where(
             Sleep.user_id == current_user.id,
             Sleep.sleep_at_day.is_(False),
-            Sleep.wake_up_at >= week_ago,
+            Sleep.wake_up_at >= week_start,
         )
     )
 
