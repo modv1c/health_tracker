@@ -128,7 +128,7 @@ export function Dashboard() {
           <div className="kpi">
             <div className="kpi-icon"><Dumbbell size={24} aria-hidden /></div>
             <div className="kpi-text">
-              <div className="kpi-label">Тренировок за неделю</div>
+              <div className="kpi-label">Упражнений за неделю</div>
               <div className="kpi-value">
                 {data?.summary?.workouts_this_week ?? 0}
                 <small>{plural(data?.summary?.workouts_this_week ?? 0, "упражнение", "упражнения", "упражнений")}</small>
